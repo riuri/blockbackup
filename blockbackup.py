@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-def aread():
-	with open('block', 'rb') as i:
+def aread(filename):
+	with open(filename, 'rb') as i:
 		count = 0
 		b1 = i.read(512)
 		while(b1):
@@ -12,4 +12,4 @@ def aread():
 
 if __name__ == '__main__':
 	print('Hello')
-	aread()
+	aread('block')
