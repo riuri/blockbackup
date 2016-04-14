@@ -5,7 +5,7 @@ def aread(filename):
 		count = 0
 		b1 = i.read(512)
 		while(b1):
-			print(count)
+			print("%08x"%count)
 			print(b1)
 			count += 1
 			b1 = i.read(512)
