@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from datetime import datetime
+import os
 
 def timestring():
 	return datetime.utcnow().strftime('%Y%m%d%H%M%S')
@@ -16,6 +17,9 @@ def aread(filename):
 			count += 1
 			b1 = i.read(512)
 
+def osdir():
+	return [i for i in os.listdir() if i[-4:] == '.blk']
+
 if __name__ == '__main__':
 	print('Hello')
-	print(timestring())
+	print(osdir())
