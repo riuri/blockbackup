@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+from datetime import datetime
+
+def timestring():
+	return datetime.utcnow().strftime('%Y%m%d%H%M%S')
+
 def aread(filename):
 	with open(filename, 'rb') as i:
 		count = 0
@@ -13,4 +18,4 @@ def aread(filename):
 
 if __name__ == '__main__':
 	print('Hello')
-	aread('block')
+	print(timestring())
