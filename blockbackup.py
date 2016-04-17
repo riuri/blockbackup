@@ -60,11 +60,34 @@ def create_backup(filename, dir = '.'):
 		os.makedirs(os.path.join(dir, ts), exist_ok = True)
 		while(b1):
 			model = tsdir_model("%016x"%count, ts)
-			outfilename = model.filename(dir)
-			with open(outfilename, 'wb') as of:
-				of.write(b1)
+			dirty = True
+			# Try to find the other block
+			try:
+				beforefilename = model.getblockbackup(dir)
+				with open(beforefilename, 'rb') as bf:
+					b2 = bf.read(512)
+					if b1 == b2:
+						dirty = False
+			except(ValueError): pass
+			if dirty:
+				outfilename = model.filename(dir)
+				with open(outfilename, 'wb') as of:
+					of.write(b1)
 			count += 1
 			b1 = i.read(512)
+
+def retrieve_backup(filename, dir = '.'):
+	with open(filename, 'wb') as f:
+		for blkid in range(2**(16*4)):
+			model = tsdir_model("%016x"%blkid)
+			try:
+				blockfile = model.getblockbackup(dir)
+			except(ValueError):
+				break
+			with open(blockfile, 'rb') as bf:
+				b1 = bf.read(512)
+				f.write(b1)
+
 
 def osdir():
 	return [i for i in os.listdir() if i[-4:] == '.blk']
@@ -72,3 +95,4 @@ def osdir():
 if __name__ == '__main__':
 	print('Hello')
 	create_backup('block', 'test')
+	retrieve_backup('block2', 'test')
