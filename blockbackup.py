@@ -45,6 +45,8 @@ class tsdir_model(timestamp_model):
 	def listblockcandidates(self, dir = '.'):
 		thisblockmatch = re.compile(r'%s/[0-9]{8}/%s\.blk$'%(dir, self.blockstring))
 		return filter(thisblockmatch.match, self.listallcandidates(dir))
+	def getblockbackup(self, dir = '.'):
+		return max(self.listblockcandidates(dir))
 
 
 def timestring():
@@ -67,5 +69,4 @@ def osdir():
 if __name__ == '__main__':
 	print('Hello')
 	a = tsdir_model('0'*16, '20160417')
-	for i in a.listblockcandidates('test'):
-		print(i)
+	print(a.getblockbackup('test'))
