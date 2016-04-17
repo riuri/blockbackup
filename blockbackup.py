@@ -4,6 +4,8 @@ from datetime import datetime
 import os
 import re
 
+blocksize = 512
+
 class timestamp_model(object):
 	'''Class for file backup naming conventions'''
 	def __init__(self, blockstring, timestring):
@@ -53,9 +55,10 @@ def timestring():
 	return datetime.utcnow().strftime('%Y%m%d%H%M%S')
 
 def create_backup(filename, dir = '.'):
+	'''Creates a backup from a filename on dir'''
 	with open(filename, 'rb') as i:
 		count = 0
-		b1 = i.read(512)
+		b1 = i.read(blocksize)
 		ts = timestring()
 		os.makedirs(os.path.join(dir, ts), exist_ok = True)
 		while(b1):
@@ -65,7 +68,7 @@ def create_backup(filename, dir = '.'):
 			try:
 				beforefilename = model.getblockbackup(dir)
 				with open(beforefilename, 'rb') as bf:
-					b2 = bf.read(512)
+					b2 = bf.read(blocksize)
 					if b1 == b2:
 						dirty = False
 			except(ValueError): pass
@@ -74,18 +77,19 @@ def create_backup(filename, dir = '.'):
 				with open(outfilename, 'wb') as of:
 					of.write(b1)
 			count += 1
-			b1 = i.read(512)
+			b1 = i.read(blocksize)
 
 def retrieve_backup(filename, dir = '.'):
+	'''Retrieves a backup from a dir onto a filename'''
 	with open(filename, 'wb') as f:
 		for blkid in range(2**(16*4)):
-			model = tsdir_model("%016x"%blkid)
+			model = tsdir_model("%016x"%blkid, '')
 			try:
 				blockfile = model.getblockbackup(dir)
 			except(ValueError):
 				break
 			with open(blockfile, 'rb') as bf:
-				b1 = bf.read(512)
+				b1 = bf.read(blocksize)
 				f.write(b1)
 
 
