@@ -28,10 +28,10 @@ class timestamp_model(object):
 class tsdir_model(timestamp_model):
 	def __init__(self, blockstring, timestring):
 		timestamp_model.__init__(self, blockstring, timestring)
-		self.timematch = re.compile(r'^[0-9]{8}$')
+		self.timematch = re.compile(r'^[0-9]{14}$')
 		self.blockmatch = re.compile(r'^[0-9a-f]{16}\.blk$')
-	def filename(self):
-		return '%s/%s'%(self.timestring, self.blockstring)
+	def filename(self, dir = '.'):
+		return os.path.join(dir, self.timestring, "%s.blk"%self.blockstring)
 	def listallcandidates(self, dir='.'):
 		for i in os.listdir(dir):
 			if self.timematch.match(i) and os.path.isdir(os.path.join(dir, i)):
@@ -43,7 +43,7 @@ class tsdir_model(timestamp_model):
 	def filename(self, dir='.'):
 		return '%s/%s/%s.blk'%(dir, self.timestring, self.blockstring)
 	def listblockcandidates(self, dir = '.'):
-		thisblockmatch = re.compile(r'%s/[0-9]{8}/%s\.blk$'%(dir, self.blockstring))
+		thisblockmatch = re.compile(r'%s/[0-9]{14}/%s\.blk$'%(dir, self.blockstring))
 		return filter(thisblockmatch.match, self.listallcandidates(dir))
 	def getblockbackup(self, dir = '.'):
 		return max(self.listblockcandidates(dir))
@@ -52,12 +52,15 @@ class tsdir_model(timestamp_model):
 def timestring():
 	return datetime.utcnow().strftime('%Y%m%d%H%M%S')
 
-def aread(filename):
+def create_backup(filename, dir = '.'):
 	with open(filename, 'rb') as i:
 		count = 0
 		b1 = i.read(512)
+		ts = timestring()
+		os.makedirs(os.path.join(dir, ts), exist_ok = True)
 		while(b1):
-			outfilename = "%016x.blk"%count
+			model = tsdir_model("%016x"%count, ts)
+			outfilename = model.filename(dir)
 			with open(outfilename, 'wb') as of:
 				of.write(b1)
 			count += 1
@@ -68,5 +71,4 @@ def osdir():
 
 if __name__ == '__main__':
 	print('Hello')
-	a = tsdir_model('0'*16, '20160417')
-	print(a.getblockbackup('test'))
+	create_backup('block', 'test')
