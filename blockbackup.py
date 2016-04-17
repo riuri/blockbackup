@@ -4,7 +4,7 @@ from datetime import datetime
 import os
 import re
 
-blocksize = 512
+blocksize = 4096
 
 class timestamp_model(object):
 	'''Class for file backup naming conventions'''
