@@ -43,7 +43,7 @@ class tsdir_model(timestamp_model):
 	def filename(self, dir='.'):
 		return '%s/%s/%s.blk'%(dir, self.timestring, self.blockstring)
 	def listblockcandidates(self, dir = '.'):
-		thisblockmatch = re.compile(r'[0-9]{8}/%s\.blk$'%self.blockstring)
+		thisblockmatch = re.compile(r'%s/[0-9]{8}/%s\.blk$'%(dir, self.blockstring))
 		return filter(thisblockmatch.match, self.listallcandidates(dir))
 
 
@@ -66,6 +66,6 @@ def osdir():
 
 if __name__ == '__main__':
 	print('Hello')
-	a = tsdir_model('20160417', '0'*16)
-	for i in a.listallcandidates('test'):
+	a = tsdir_model('0'*16, '20160417')
+	for i in a.listblockcandidates('test'):
 		print(i)
