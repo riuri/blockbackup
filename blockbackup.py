@@ -40,8 +40,8 @@ class tsdir_model(timestamp_model):
 					f = os.path.join(timedir, j)
 					if self.blockmatch.match(j) and os.path.isfile(f):
 						yield f
-	def filename(self):
-		return '%s/%s.blk'
+	def filename(self, dir='.'):
+		return '%s/%s/%s.blk'%(dir, self.timestring, self.blockstring)
 	def listblockcandidates(self, dir = '.'):
 		thisblockmatch = re.compile(r'[0-9]{8}/%s\.blk$'%self.blockstring)
 		return filter(thisblockmatch.match, self.listallcandidates(dir))
