@@ -28,27 +28,28 @@ class timestamp_model(object):
 		'''Return all candidates for a given timestring'''
 
 class tsdir_model(timestamp_model):
-	def __init__(self, blockstring, timestring):
+	def __init__(self, blockstring, timestring, dire = '.'):
 		timestamp_model.__init__(self, blockstring, timestring)
+		self.dir = dire
 		self.timematch = re.compile(r'^[0-9]{14}$')
 		self.blockmatch = re.compile(r'^[0-9a-f]{16}\.blk$')
-	def filename(self, dir = '.'):
-		return os.path.join(dir, self.timestring, "%s.blk"%self.blockstring)
-	def listallcandidates(self, dir='.'):
-		for i in os.listdir(dir):
-			if self.timematch.match(i) and os.path.isdir(os.path.join(dir, i)):
-				timedir = os.path.join(dir, i)
+	def filename(self): # used
+		return os.path.join(self.dir, self.timestring, "%s.blk"%self.blockstring)
+	def listallcandidates(self):
+		for i in os.listdir(self.dir):
+			if self.timematch.match(i) and os.path.isdir(os.path.join(self.dir, i)):
+				timedir = os.path.join(self.dir, i)
 				for j in os.listdir(timedir):
 					f = os.path.join(timedir, j)
 					if self.blockmatch.match(j) and os.path.isfile(f):
 						yield f
-	def filename(self, dir='.'):
-		return '%s/%s/%s.blk'%(dir, self.timestring, self.blockstring)
-	def listblockcandidates(self, dir = '.'):
-		thisblockmatch = re.compile(r'%s/[0-9]{14}/%s\.blk$'%(dir, self.blockstring))
-		return filter(thisblockmatch.match, self.listallcandidates(dir))
-	def getblockbackup(self, dir = '.'):
-		return max(self.listblockcandidates(dir))
+	def filename(self):
+		return '%s/%s/%s.blk'%(self.dir, self.timestring, self.blockstring)
+	def listblockcandidates(self):
+		thisblockmatch = re.compile(r'%s/[0-9]{14}/%s\.blk$'%(self.dir, self.blockstring))
+		return filter(thisblockmatch.match, self.listallcandidates())
+	def getblockbackup(self,): # used
+		return max(self.listblockcandidates())
 
 
 def timestring():
@@ -62,18 +63,18 @@ def create_backup(filename, dir = '.'):
 		ts = timestring()
 		os.makedirs(os.path.join(dir, ts), exist_ok = True)
 		while(b1):
-			model = tsdir_model("%016x"%count, ts)
+			model = tsdir_model("%016x"%count, ts, dir)
 			dirty = True
 			# Try to find the other block
 			try:
-				beforefilename = model.getblockbackup(dir)
+				beforefilename = model.getblockbackup()
 				with open(beforefilename, 'rb') as bf:
 					b2 = bf.read(blocksize)
 					if b1 == b2:
 						dirty = False
 			except(ValueError): pass
 			if dirty:
-				outfilename = model.filename(dir)
+				outfilename = model.filename()
 				with open(outfilename, 'wb') as of:
 					of.write(b1)
 			count += 1
@@ -83,9 +84,9 @@ def retrieve_backup(filename, dir = '.'):
 	'''Retrieves a backup from a dir onto a filename'''
 	with open(filename, 'wb') as f:
 		for blkid in range(2**(16*4)):
-			model = tsdir_model("%016x"%blkid, '')
+			model = tsdir_model("%016x"%blkid, '', dir)
 			try:
-				blockfile = model.getblockbackup(dir)
+				blockfile = model.getblockbackup()
 			except(ValueError):
 				break
 			with open(blockfile, 'rb') as bf:
