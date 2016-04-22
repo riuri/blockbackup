@@ -28,11 +28,15 @@ class timestamp_model(object):
 		'''Return all candidates for a given timestring'''
 
 class tsdir_model(timestamp_model):
+	blockmap = {}
 	def __init__(self, blockstring, timestring, dire = '.'):
 		timestamp_model.__init__(self, blockstring, timestring)
 		self.dir = dire
 		self.timematch = re.compile(r'^[0-9]{14}$')
 		self.blockmatch = re.compile(r'^[0-9a-f]{16}\.blk$')
+		if not tsdir_model.blockmap:
+			tsdir_model.blockmap = {}
+			self.listallcandidates()
 	def filename(self): # used
 		return os.path.join(self.dir, self.timestring, "%s.blk"%self.blockstring)
 	def listallcandidates(self):
@@ -42,14 +46,16 @@ class tsdir_model(timestamp_model):
 				for j in os.listdir(timedir):
 					f = os.path.join(timedir, j)
 					if self.blockmatch.match(j) and os.path.isfile(f):
-						yield f
-	def filename(self):
-		return '%s/%s/%s.blk'%(self.dir, self.timestring, self.blockstring)
+						try:
+							if tsdir_model.blockmap[j][0] < i:
+								tsdir_model.blockmap[j] = (i, f)
+						except(KeyError):
+							tsdir_model.blockmap[j] = (i, f)
 	def listblockcandidates(self):
 		thisblockmatch = re.compile(r'%s/[0-9]{14}/%s\.blk$'%(self.dir, self.blockstring))
 		return filter(thisblockmatch.match, self.listallcandidates())
 	def getblockbackup(self,): # used
-		return max(self.listblockcandidates())
+		return tsdir_model.blockmap[self.blockstring+'.blk'][1]
 
 
 def timestring():
@@ -87,7 +93,7 @@ def retrieve_backup(filename, dir = '.'):
 			model = tsdir_model("%016x"%blkid, '', dir)
 			try:
 				blockfile = model.getblockbackup()
-			except(ValueError):
+			except(KeyError):
 				break
 			with open(blockfile, 'rb') as bf:
 				b1 = bf.read(blocksize)
