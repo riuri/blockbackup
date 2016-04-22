@@ -78,7 +78,7 @@ def create_backup(filename, dir = '.'):
 					b2 = bf.read(blocksize)
 					if b1 == b2:
 						dirty = False
-			except(ValueError): pass
+			except(KeyError): pass
 			if dirty:
 				outfilename = model.filename()
 				with open(outfilename, 'wb') as of:
